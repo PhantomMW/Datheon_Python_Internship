@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "datheon-python-internship"
+version = "1.0.0"
+description = "Production-grade AI Automations: Multi-Source Lead Routing & Autonomous Customer Support Email Triage"
+authors = [{ name = "Mohammed Wael", email = "mw252868@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "openai>=1.20.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.1",
+    "rich>=13.7.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "KB-101",
+    "title": "Billing Inquiries & Duplicate Charge Resolutions",
+    "category": "BILLING",
+    "content": "Our billing cycles run on the 1st of each calendar month. If a customer observes duplicate transactions or needs invoice corrections, billing credits can be applied directly to their account within 24-48 business hours. For annual plan discounts and enterprise wire transfers, our billing team provides custom NET-30 invoicing.",
+    "keywords": ["billing", "invoice", "charge", "duplicate", "receipt", "payment", "cost", "credit"]
+  },
+  {
+    "id": "KB-102",
+    "title": "Cancellation Policy and Refund Request Procedures",
+    "category": "BILLING",
+    "content": "Customers are eligible for a 100% full refund within 14 days of subscription renewal or initial signup with no questions asked. To process a refund, customer accounts must be verified, and the prorated balance is credited back to the original payment method within 3 to 5 business days. Subscriptions can be paused for up to 3 months without data loss.",
+    "keywords": ["cancel", "cancellation", "refund", "money back", "unsubscribe", "downgrade"]
+  },
+  {
+    "id": "KB-201",
+    "title": "Urgent Production Outage & Service Disruption Protocols",
+    "category": "TECHNICAL_SUPPORT",
+    "content": "For Tier-1 production outages (API 500 errors, database disconnects, or webhook delivery pauses), our on-call Site Reliability Engineering (SRE) team responds within 15 minutes. Customers can track real-time incident status at https://status.datheon.ai. Our enterprise SLA guarantees 99.95% uptime with automatic outage compensation credits.",
+    "keywords": ["outage", "down", "500", "502", "error", "crashing", "incident", "offline", "failure", "urgent", "production down"]
+  },
+  {
+    "id": "KB-202",
+    "title": "API Authentication, Webhooks & Rate Limits Troubleshooting",
+    "category": "TECHNICAL_SUPPORT",
+    "content": "API requests require Bearer token authorization in the Authorization HTTP header (`Authorization: Bearer <API_KEY>`). Standard tier permits 120 requests/minute, while Enterprise tier allows up to 5,000 requests/minute. HTTP 429 indicates rate-limiting: implement exponential backoff with jitter.",
+    "keywords": ["api", "rate limit", "429", "token", "unauthorized", "401", "webhook", "authentication"]
+  },
+  {
+    "id": "KB-301",
+    "title": "Feature Requests, Product Roadmap & Custom Integrations",
+    "category": "GENERAL_INQUIRY",
+    "content": "Feature suggestions are reviewed bi-weekly by our core engineering product team. We maintain public feedback boards where users can upvote integrations (e.g. Notion, Salesforce, Zapier). For enterprise custom connectors, dedicated solutions architects are assigned upon request.",
+    "keywords": ["feature", "roadmap", "integration", "suggestion", "connect", "salesforce", "notion"]
+  }
+]

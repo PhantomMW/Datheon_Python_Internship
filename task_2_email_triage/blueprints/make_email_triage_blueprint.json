@@ -1,0 +1,121 @@
+{
+  "name": "Datheon Task 2 - Autonomous Customer Support & Intelligent Email Triage",
+  "description": "Production Make.com Scenario: Watches Gmail for inbound emails, analyzes sentiment & intent using OpenAI, auto-tags thread with priority labels, and creates human-like context-aware drafts in Gmail.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "google-email:watchEmails",
+      "version": 1,
+      "parameters": {
+        "folder": "INBOX",
+        "filter": "is:unread",
+        "maxResults": 10
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": -600,
+          "y": 0,
+          "name": "Gmail: Watch Inbound Emails"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "openai-gpt-3:createChatCompletion",
+      "version": 1,
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "temperature": 0.3,
+        "response_format": "json_object"
+      },
+      "mapper": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an autonomous customer support agent. Analyze the email sentiment (POSITIVE, NEUTRAL, FRUSTRATED, ANGRY), classify intent (URGENT_OUTAGE, BILLING_QUERY, TECHNICAL_SUPPORT, CANCELLATION_REQUEST, GENERAL_INQUIRY), assign urgency (HIGH, MEDIUM, LOW), and write a polite, human-like, context-aware draft reply. Output strict JSON with keys: sentiment, intent, urgency, label_tags (array), draft_subject, draft_body."
+          },
+          {
+            "role": "user",
+            "content": "From: {{1.from.value[].address}}\nName: {{1.from.value[].name}}\nSubject: {{1.subject}}\nBody: {{1.text}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": -250,
+          "y": 0,
+          "name": "OpenAI Support Triage Agent"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "json:ParseJSON",
+      "version": 1,
+      "parameters": {
+        "type": ""
+      },
+      "mapper": {
+        "json": "{{2.choices[].message.content}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 50,
+          "y": 0,
+          "name": "Parse Triage & Draft JSON"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "google-email:addLabels",
+      "version": 1,
+      "parameters": {
+        "messageId": "{{1.id}}"
+      },
+      "mapper": {
+        "labelNames": [
+          "Triage/{{3.intent}}",
+          "Priority/{{3.urgency}}",
+          "Status/Draft-Created"
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 350,
+          "y": -80,
+          "name": "Gmail: Apply Dynamic Labels"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "module": "google-email:createADraft",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "to": "{{1.from.value[].address}}",
+        "subject": "{{3.draft_subject}}",
+        "content": "{{3.draft_body}}",
+        "threadId": "{{1.threadId}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 650,
+          "y": 0,
+          "name": "Gmail: Create Polite Draft Reply"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true
+    }
+  }
+}

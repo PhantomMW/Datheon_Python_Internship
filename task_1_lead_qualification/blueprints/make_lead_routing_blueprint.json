@@ -1,0 +1,159 @@
+{
+  "name": "Datheon Task 1 - Multi-Source Lead Routing & Instant AI Qualification",
+  "description": "Production Make.com Scenario: Captures inbound webhook leads, qualifies budget & size via OpenAI, creates Airtable record, and alerts Slack with custom talking points in <10s.",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 105821,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": -600,
+          "y": 0,
+          "name": "Inbound Lead Webhook (Typeform/Custom)"
+        },
+        "restore": {},
+        "parameters": [
+          {
+            "name": "hook",
+            "type": "hook:gateway-webhook",
+            "label": "Webhook",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "openai-gpt-3:createChatCompletion",
+      "version": 1,
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "temperature": 0.2,
+        "response_format": "json_object"
+      },
+      "mapper": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are an enterprise AI qualification agent. Analyze the lead's company size and estimated budget. Return a valid JSON with keys: qualification_tier (TIER_1_ENTERPRISE, TIER_2_MID_MARKET, TIER_3_SMB, UNQUALIFIED), score (0-100), urgency (HIGH, MEDIUM, LOW), reasoning, custom_sales_talking_points (array of strings), recommended_action."
+          },
+          {
+            "role": "user",
+            "content": "Name: {{1.full_name}}\nEmail: {{1.email}}\nCompany: {{1.company_name}}\nSize: {{1.company_size}}\nBudget: {{1.estimated_budget}}\nScope: {{1.project_scope}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": -300,
+          "y": 0,
+          "name": "OpenAI Lead Qualifier & Talking Points Generator"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "json:ParseJSON",
+      "version": 1,
+      "parameters": {
+        "type": ""
+      },
+      "mapper": {
+        "json": "{{2.choices[].message.content}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": -50,
+          "y": 0,
+          "name": "Parse AI Qualification JSON"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "airtable:createRecord",
+      "version": 2,
+      "parameters": {
+        "base": "{{env.AIRTABLE_BASE_ID}}",
+        "table": "Leads"
+      },
+      "mapper": {
+        "Full Name": "{{1.full_name}}",
+        "Email": "{{1.email}}",
+        "Company": "{{1.company_name}}",
+        "Company Size": "{{1.company_size}}",
+        "Budget": "{{1.estimated_budget}}",
+        "Qualification Tier": "{{3.qualification_tier}}",
+        "Lead Score": "{{3.score}}",
+        "Urgency": "{{3.urgency}}",
+        "Sales Talking Points": "{{join(3.custom_sales_talking_points; newline)}}",
+        "Recommended Action": "{{3.recommended_action}}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 200,
+          "y": 0,
+          "name": "Airtable: Create Lead Record"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "module": "slack:createMessage",
+      "version": 1,
+      "parameters": {
+        "channelType": "public",
+        "channel": "{{env.SLACK_SALES_CHANNEL}}"
+      },
+      "mapper": {
+        "text": "🚀 *New Lead Qualified: {{1.company_name}}* ({{3.qualification_tier}})\n• *Contact:* {{1.full_name}} ({{1.email}})\n• *Size / Budget:* {{1.company_size}} | {{1.estimated_budget}}\n• *Score:* `{{3.score}}/100` [{{3.urgency}}]\n• *🎯 Custom Talking Points:*\n{{join(3.custom_sales_talking_points; newline)}}\n• *⚡ Action:* _{{{3.recommended_action}}}_ \n• *Airtable ID:* `{{4.id}}`"
+      },
+      "metadata": {
+        "designer": {
+          "x": 450,
+          "y": 0,
+          "name": "Slack: Alert Sales with Talking Points"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "module": "gateway:WebhookRespond",
+      "version": 1,
+      "parameters": {
+        "status": 200
+      },
+      "mapper": {
+        "body": "{\"status\": \"success\", \"tier\": \"{{3.qualification_tier}}\", \"score\": {{3.score}}, \"airtable_id\": \"{{4.id}}\", \"sla\": \"under_10s\"}",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": {
+          "x": 700,
+          "y": 0,
+          "name": "Webhook Response (<10s SLA)"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true
+    }
+  }
+}
